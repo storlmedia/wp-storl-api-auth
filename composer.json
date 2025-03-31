@@ -1,0 +1,27 @@
+{
+	"name": "storl/wp-api-auth",
+	"type": "wp-plugin",
+	"scripts": {
+		"start": "docker compose up -d",
+		"stop": "docker compose stop",
+		"logs": [
+			"Composer\\Config::disableProcessTimeout",
+			"docker logs -f --tail 10 $(docker compose ps -q wp) 2>&1 >/dev/null"
+		],
+		"mysql": [
+			"Composer\\Config::disableProcessTimeout",
+			"docker compose exec mysql mysql -u root -D wordpress -ppassword"
+		],
+		"build:zip": "sh bin/build-zip.sh"
+	},
+	"autoload": {
+		"psr-4": {
+			"Storl\\WpApiAuth\\": "src/"
+		}
+	},
+	"require": {
+		"web-token/jwt-core": "^2.2",
+		"web-token/jwt-checker": "^2.2",
+		"web-token/jwt-signature-algorithm-rsa": "^2.2"
+	}
+}
