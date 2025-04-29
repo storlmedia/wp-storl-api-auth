@@ -2,6 +2,7 @@
 
 namespace Storl\WpApiAuth;
 
+use Storl\WpApiAuth\Controller\AppLoginController;
 use Storl\WpApiAuth\Repository\UserMappingRepository;
 
 class Plugin
@@ -25,10 +26,12 @@ class Plugin
 		register_deactivation_hook(STORL_API_AUTH_PLUGIN_FILE, [$this, 'on_plugin_deactivation']);
 
 		$this->userMappingRepository = new UserMappingRepository();
-		new Auth($this->userMappingRepository, [
+		$auth = new Auth($this->userMappingRepository, [
 			Auth::OPTION_JWKS_URL => 'https://konto.storl.de/realms/storl/protocol/openid-connect/certs',
 			Auth::OPTION_APP_ID => 'packwolf',
 		]);
+
+		$login_controller = new AppLoginController($auth, $this->userMappingRepository);
 
 		add_action('init', [$this, 'on_init']);
 
@@ -36,20 +39,17 @@ class Plugin
 		add_action('openid-connect-generic-user-create', [$this, 'save_subject_identity_on_create'], 10, 2);
 	}
 
-	public function on_init()
-	{
-	}
+	public function on_init() {}
 
 	public function on_plugin_activation()
 	{
 		require_once \STORL_API_AUTH_PLUGIN_ABSPATH . '/create_db_schema.php';
 	}
 
-	public function on_plugin_deactivation()
-	{
-	}
+	public function on_plugin_deactivation() {}
 
-	public function save_subject_identity_on_update($user_id) {
+	public function save_subject_identity_on_update($user_id)
+	{
 		$subject_identity = get_user_meta($user_id, 'openid-connect-generic-subject-identity', true);
 		if ($subject_identity) {
 			$this->userMappingRepository->upsert([
@@ -57,10 +57,10 @@ class Plugin
 				'external_user_id' => $subject_identity,
 			]);
 		}
-
 	}
 
-	public function save_subject_identity_on_create(\WP_User $user, array $user_claim) {
+	public function save_subject_identity_on_create(\WP_User $user, array $user_claim)
+	{
 		$subject_identity = $user_claim['sub'];
 		if ($subject_identity) {
 			$this->userMappingRepository->upsert([

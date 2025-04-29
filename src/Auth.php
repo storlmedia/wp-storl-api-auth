@@ -53,7 +53,10 @@ class Auth
 	{
 		// don't override other auth mechanisms
 		if ($user_id !== false || !$this->is_rest_request()) {
-			return $user_id;
+			// fix buddyboss app login bug
+			if ($user_id !== null) {
+				return $user_id;
+			}
 		}
 
 		// check if request provides bearer auth
@@ -164,7 +167,7 @@ class Auth
 		return JWKSet::createFromKeyData($jwks);
 	}
 
-	private function validate_access_token(string $token)
+	public function validate_access_token(string $token)
 	{
 		$header_checker_manager = new HeaderCheckerManager(
 			[
